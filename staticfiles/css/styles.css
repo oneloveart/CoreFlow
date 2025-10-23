@@ -1,0 +1,5 @@
+body { background: #f8f9fa; }
+.table td, .table th { vertical-align: middle; }
+.badge { font-size: 0.9rem; }
+.card { box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+.btn-sm { margin-right: 4px; }

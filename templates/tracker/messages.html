@@ -1,0 +1,31 @@
+{% extends 'tracker/base.html' %}
+{% block content %}
+<h3>Сообщения</h3>
+
+<form method="post" action="{% url 'send_message' %}">
+  {% csrf_token %}
+  <div class="mb-2">
+    <select name="recipient" class="form-select" required>
+      <option value="">Выберите получателя</option>
+      {% for u in users %}
+        <option value="{{ u.id }}">{{ u.username }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-2">
+    <textarea name="text" class="form-control" rows="2" placeholder="Сообщение" required></textarea>
+  </div>
+  <button type="submit" class="btn btn-primary">Отправить</button>
+</form>
+
+<hr>
+<ul class="list-group">
+  {% for msg in messages %}
+    <li class="list-group-item">
+      <strong>{{ msg.sender.username }}</strong>: {{ msg.text }} <small class="text-muted">{{ msg.created_at }}</small>
+    </li>
+  {% empty %}
+    <li class="list-group-item">Нет сообщений</li>
+  {% endfor %}
+</ul>
+{% endblock %}

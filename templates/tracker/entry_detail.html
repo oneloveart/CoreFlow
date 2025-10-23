@@ -1,0 +1,14 @@
+{% extends 'tracker/base.html' %}
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <h3>{{ entry.get_category_display }}</h3>
+    <p><strong>Время:</strong> {{ entry.start|date:'Y-m-d H:i' }} — {{ entry.end|date:'Y-m-d H:i' }}</p>
+    <p><strong>Длительность:</strong> {{ entry.duration_minutes }} минут</p>
+    <p><strong>Заметка:</strong><br>{{ entry.note|linebreaksbr }}</p>
+    <a class="btn btn-warning" href="{% url 'entry_edit' entry.pk %}">Редактировать</a>
+    <a class="btn btn-danger" href="{% url 'entry_delete' entry.pk %}">Удалить</a>
+    <a class="btn btn-secondary" href="{% url 'entry_list' %}">Назад</a>
+  </div>
+</div>
+{% endblock %}
