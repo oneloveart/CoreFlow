@@ -1,0 +1,15 @@
+{% extends 'tracker/base.html' %}
+{% block content %}
+<div class="card border-danger">
+  <div class="card-body">
+    <h3 class="text-danger">Удалить запись?</h3>
+    <p><strong>{{ entry.get_category_display }}</strong><br>
+    {{ entry.start|date:'Y-m-d H:i' }} — {{ entry.end|date:'Y-m-d H:i' }}</p>
+    <form method="post">
+      {% csrf_token %}
+      <button class="btn btn-danger" type="submit">Удалить</button>
+      <a class="btn btn-secondary" href="{% url 'entry_list' %}">Отмена</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'tracker/base.html' %}
+
+{% block content %}
+<h1>Новости УрФУ</h1>
+
+{% if news_items %}
+<ul>
+    {% for item in news_items %}
+        <li>
+            <a href="{{ item.link }}" target="_blank">{{ item.title }}</a>
+            <p>{{ item.pubDate }}</p>
+            <p>{{ item.description|safe }}</p>
+        </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>Новостей пока нет.</p>
+{% endif %}
+
+{% endblock %}

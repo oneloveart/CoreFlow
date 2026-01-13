@@ -1,0 +1,125 @@
+{% extends 'tracker/base.html' %}
+{% block content %}
+<h3>Сообщения</h3>
+
+<div class="row">
+  <!-- список пользователей -->
+  <div class="col-md-4">
+    <div class="list-group">
+      {% for u in users %}
+        <a class="list-group-item list-group-item-action {% if other_user and u.id == other_user.id %}active{% endif %}"
+           href="?user={{ u.id }}">
+          {{ u.username }}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- диалог -->
+  <div class="col-md-8">
+    {% if other_user %}
+      <h5 class="mb-3">Диалог с {{ other_user.username }}</h5>
+
+      <div id="chatBox" class="border rounded p-2 mb-3" style="height: 320px; overflow-y: auto;">
+        {% for msg in messages %}
+          <div class="mb-2" data-msg-id="{{ msg.id }}">
+            <strong>
+              {% if msg.sender_id == request.user.id %}Вы{% else %}{{ msg.sender.username }}{% endif %}
+            </strong>:
+            {{ msg.text }}
+            <small class="text-muted">{{ msg.created_at|date:"Y-m-d H:i" }}</small>
+          </div>
+        {% empty %}
+          <div class="text-muted">Сообщений пока нет</div>
+        {% endfor %}
+      </div>
+
+      <form id="sendForm" method="post" action="{% url 'send_message' %}">
+        {% csrf_token %}
+        <input type="hidden" name="recipient" value="{{ other_user.id }}">
+        <textarea id="textInput" name="text" class="form-control" rows="2" placeholder="Сообщение" required></textarea>
+        <button type="submit" class="btn btn-primary mt-2">Отправить</button>
+      </form>
+
+      <script>
+        const chatBox = document.getElementById("chatBox");
+        const sendForm = document.getElementById("sendForm");
+        const textInput = document.getElementById("textInput");
+
+        const otherUserId = "{{ other_user.id }}";
+
+        function getLastMsgId() {
+          const nodes = chatBox.querySelectorAll("[data-msg-id]");
+          if (!nodes.length) return 0;
+          return parseInt(nodes[nodes.length - 1].dataset.msgId, 10);
+        }
+
+        function scrollToBottom() {
+          chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function escapeHtml(s) {
+          return s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+        }
+
+        function appendMessage(m) {
+          const div = document.createElement("div");
+          div.className = "mb-2";
+          div.dataset.msgId = m.id;
+
+          const who = (parseInt(m.sender_id, 10) === {{ request.user.id }}) ? "Вы" : m.sender_username;
+          div.innerHTML = `<strong>${escapeHtml(who)}</strong>: ${escapeHtml(m.text)} <small class="text-muted">${escapeHtml(m.created_at)}</small>`;
+          chatBox.appendChild(div);
+        }
+
+        // Отправка без перезагрузки
+        sendForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const text = textInput.value.trim();
+          if (!text) return;
+
+          const formData = new FormData(sendForm);
+
+          const resp = await fetch(sendForm.action, {
+            method: "POST",
+            body: formData,
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+          });
+
+          const data = await resp.json();
+          if (data.ok) {
+            appendMessage({
+              ...data.message,
+              sender_id: data.message.sender_id,
+              sender_username: data.message.sender_username
+            });
+            textInput.value = "";
+            scrollToBottom();
+          }
+        });
+
+        // Автообновление (polling)
+        async function poll() {
+          const after = getLastMsgId();
+          const resp = await fetch("{% url 'messages_history_api' %}?user=" + otherUserId + "&after=" + after);
+          const data = await resp.json();
+
+          if (data.messages && data.messages.length) {
+            for (const m of data.messages) {
+              appendMessage(m);
+            }
+            scrollToBottom();
+          }
+        }
+
+        scrollToBottom();
+        setInterval(poll, 1200);
+      </script>
+
+    {% else %}
+      <div class="text-muted">Выберите пользователя слева, чтобы открыть диалог.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'tracker/base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Дашборд (сегодня)</h2>
+  <a class="btn btn-success" href="{% url 'entry_add' %}">Добавить запись</a>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body" style="height:220px">
+    <canvas id="chart"></canvas>
+    <script>
+      const data = {{ data|safe }};
+      const labels = ['Учёба','Отдых','Сон','Другое'];
+      const values = [data.study||0, data.rest||0, data.sleep||0, data.other||0];
+      const ctx = document.getElementById('chart').getContext('2d');
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{ data: values, hoverOffset: 4 }]
+        },
+        options: {responsive:true, maintainAspectRatio:false}
+      });
+    </script>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-4">
+    <div class="card p-3">
+      <h5>Итого (мин)</h5>
+      <ul class="list-unstyled">
+        <li>Учёба: <strong>{{ data.study }}</strong></li>
+        <li>Отдых: <strong>{{ data.rest }}</strong></li>
+        <li>Сон: <strong>{{ data.sleep }}</strong></li>
+        <li>Другое: <strong>{{ data.other }}</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <div class="card mt-4 shadow-sm">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5>💡 Советы по продуктивности</h5>
+        <button class="btn btn-sm btn-outline-primary" onclick="updateAdvice()">🔄 Обновить советы</button>
+      </div>
+      <div class="card-body">
+        <ul id="advice-list">
+          {% for item in advice %}
+            <li>{{ item }}</li>
+          {% empty %}
+            <li>Здесь появятся твои советы.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+async function updateAdvice() {
+  const response = await fetch("{% url 'get_advice' %}");
+  const data = await response.json();
+  const adviceList = document.getElementById('advice-list');
+  adviceList.innerHTML = data.advice.map(a => `<li>${a}</li>`).join('');
+}
+
+// автообновление советов раз в минуту
+setInterval(updateAdvice, 60000);
+
+// загрузка советов при первой загрузке страницы
+updateAdvice();
+</script>
+{% endblock %}

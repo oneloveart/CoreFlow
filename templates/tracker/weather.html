@@ -1,0 +1,6 @@
+{% extends 'tracker/base.html' %}
+{% block content %}
+<h3>Погода в {{ weather.city }}</h3>
+<p>{{ weather.temp }}°C, {{ weather.description }}</p>
+<img src="http://openweathermap.org/img/wn/{{ weather.icon }}@2x.png" alt="icon">
+{% endblock %}

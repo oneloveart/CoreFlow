@@ -1,0 +1,15 @@
+{% extends 'tracker/base.html' %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 400px;">
+  <h2 class="Вход">Вход</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+     <button type="submit" class="btn btn-primary">Войти</button>
+      <ul class="navbar-nav">
+          <li class="nav-item"><a class="nav-link" href="/register/">Зарегистрироваться</a></li>
+      </ul>
+  </form>
+</div>
+{% endblock %}
